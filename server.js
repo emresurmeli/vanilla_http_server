@@ -2,25 +2,37 @@
 
 var http = require('http');
 var url = require('url');
-var currentTime = new Date(); 
+// Found a sweet time format on stack overflow by L0j1k
+var currentTime = new Date();
+/* jshint ignore:start */
 var dateTime = "Server time: " + (currentTime.getMonth()+1) + "/"
                 + currentTime.getDate() + "/" 
                 + currentTime.getFullYear() + " @ "  
                 + currentTime.getHours() + ":"  
                 + currentTime.getMinutes() + ":" 
                 + currentTime.getSeconds();
+/* jshint ignore:end */
 
 var server = http.createServer(function(req, res) {
+
 	if(req.url === '/time') {
 		res.writeHead(200, {'Content-Type': 'application/json'});
-		res.write(JSON.stringify({msg: dateTime}));
+		res.write(JSON.stringify({msg: dateTime})); // jshint ignore:line
 		return res.end();
 	}
 
-	if(req.url === '/greet/' + name) {
-		var name = req.url.toString().split('/')[2];
+	if(req.url.slice(0, 6) === '/greet') {
 		res.writeHead(200, {'Content-Type': 'application/json'});
-		res.write(JSON.stringify({msg: 'hello ' + name}));
+		
+		if(req.method === 'POST') {
+			req.on('data', function(data) {
+				var body = JSON.parse(data.toString());
+				res.write(JSON.stringify({msg: 'hello ' + body.name}));
+				return res.end();
+			});
+		}
+		var body = req.url.slice(7);
+		res.write(JSON.stringify({msg: 'hello ' + body}));
 		return res.end();
 	}
 
